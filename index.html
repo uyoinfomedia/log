@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UIM Logbook — demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;700i&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="js/theme.css" />
+<style>
+  #wrap { padding: 3rem 1.1rem; text-align: center; }
+  h1 { font-family: var(--font-disp); font-size: 1.8rem; margin-bottom: 0.4rem; }
+  .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 2.2rem; }
+  .cards { display: flex; flex-direction: column; gap: 12px; }
+  a.card {
+    display: block; text-align: left; padding: 1.1rem 1.2rem; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface); text-decoration: none; color: var(--text);
+  }
+  a.card:hover { border-color: var(--accent); }
+  a.card .role { font-family: var(--font-mono); font-size: 0.68rem; color: var(--accent); }
+  a.card .title { font-size: 1rem; font-weight: 500; margin: 3px 0 4px; }
+  a.card .desc { font-size: 0.8rem; color: var(--muted); }
+  .note { margin-top: 1.6rem; font-size: 0.72rem; color: var(--muted); font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <h1>UIM Logbook</h1>
+    <div class="sub">Project-brief model — demo with real shared storage (IndexedDB)</div>
+    <div class="cards">
+      <a class="card" href="admin.html">
+        <div class="role">BARRISTER / ADMIN</div>
+        <div class="title">Set up a project</div>
+        <div class="desc">Write a brief, pick a client, assign staff.</div>
+      </a>
+      <a class="card" href="staff.html">
+        <div class="role">STAFF</div>
+        <div class="title">Log your work</div>
+        <div class="desc">See what you're assigned, log entries, claim your part done.</div>
+      </a>
+    </div>
+    <div class="note">Both pages read/write the same browser database — create a project on one side, then open the other.</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>UIM Logbook — Staff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;700i&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="js/theme.css" />
+<style>
+  #login-gate {
+    position: fixed; inset: 0; background: var(--bg); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 34px 28px; width: 100%; max-width: 320px; text-align: center;
+  }
+  .login-card h1 { font-family: var(--font-disp); font-size: 1.25rem; margin-bottom: 6px; }
+  .login-card p { color: var(--muted); font-size: 0.8rem; margin-bottom: 20px; }
+  .login-card input {
+    text-align: center; letter-spacing: 0.2em; font-family: var(--font-mono);
+    margin-bottom: 10px;
+  }
+  .login-card button { width: 100%; }
+  .login-card button:disabled { opacity: 0.6; }
+  #login-error { color: #b3261e; font-size: 0.75rem; margin-top: 8px; min-height: 1em; }
+
+  #logout-link {
+    font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted);
+    background: none; border: none; cursor: pointer; text-decoration: underline;
+  }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(20,16,10,0.45); z-index: 90;
+    display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-card {
+    background: var(--surface); border-radius: 12px; padding: 22px 20px; max-width: 300px;
+    width: 100%; text-align: center;
+  }
+  .modal-card p { font-size: 0.88rem; line-height: 1.4; margin-bottom: 16px; }
+  .modal-card .actions { display: flex; gap: 8px; }
+  .modal-card .actions button { flex: 1; }
+
+  #greeting-row { padding: 1rem 1.1rem 0; }
+  #greeting { font-family: var(--font-disp); font-size: 1.3rem; font-weight: 700; }
+  #skill-line { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  #project-picker { padding: 1rem 1.1rem 0; }
+  #project-picker label {
+    display: block; font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 5px;
+  }
+  #project-select {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--text); font-family: var(--font-sans);
+    font-size: 0.92rem; font-weight: 500;
+  }
+
+  #view-tabs { display: flex; gap: 0.4rem; padding: 1rem 1.1rem 0; }
+  .view-tab {
+    flex: 1; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.03em;
+    padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--muted); cursor: pointer; text-align: center;
+  }
+  .view-tab.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  #submissions-list .sub-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 0.6rem;
+    padding: 0.75rem 0; border-bottom: 1px solid var(--row-alt); cursor: pointer;
+  }
+  #submissions-list .sub-row:last-child { border-bottom: none; }
+  .sub-date { font-family: var(--font-mono); font-size: 0.78rem; }
+  .sub-count { font-size: 0.72rem; color: var(--muted); }
+  .sub-detail {
+    display: none; background: var(--surface2); border-radius: 8px; padding: 0.7rem 0.9rem; margin: 0 0 0.6rem;
+  }
+  .sub-detail.open { display: block; }
+  .sub-detail .row { border-bottom: 1px solid var(--border); }
+  .sub-detail .row:last-child { border-bottom: none; }
+
+  #page { padding: 1.25rem 1.1rem; }
+  #client-tag { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+  #brief-text { font-family: var(--font-disp); font-style: italic; font-size: 1.35rem; line-height: 1.3; margin: 4px 0 0.6rem; }
+  #team-line { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.4rem; }
+
+  .section-head { font-size: 0.92rem; font-weight: 500; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 0.7rem; }
+  .row { display: flex; align-items: flex-start; gap: 0.7rem; padding: 0.6rem 0; border-bottom: 1px solid var(--row-alt); }
+  .row:last-child { border-bottom: none; }
+  .row-day { flex: none; width: 34px; font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); padding-top: 2px; }
+  .row-main { flex: 1; min-width: 0; }
+  .row-desc { font-size: 0.88rem; line-height: 1.35; }
+  .row-note { font-size: 0.75rem; color: var(--muted); margin-top: 3px; font-style: italic; }
+  .row-note:empty { display: none; }
+  #empty-entries, #empty-projects { font-size: 0.8rem; color: var(--muted); padding: 0.5rem 0; }
+
+  #add-toggle {
+    font-family: var(--font-sans); font-size: 0.82rem; color: var(--accent);
+    background: var(--accent-dim); border: none; border-radius: 6px;
+    padding: 9px 12px; cursor: pointer; width: 100%; text-align: left; margin-top: 0.6rem;
+  }
+  #add-form { display: none; margin-top: 0.6rem; background: var(--surface2); border-radius: 8px; padding: 0.8rem; flex-direction: column; gap: 0.5rem; }
+  #add-form.open { display: flex; }
+  .form-row { display: flex; gap: 0.5rem; }
+  .form-row > div { flex: 1; width: 90px; }
+  .form-row > div.grow { flex: 3; width: auto; }
+  #add-form .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 2px; }
+
+  #actions-row { margin-top: 1.6rem; padding-top: 1.1rem; border-top: 1px solid var(--border); display: flex; gap: 0.6rem; }
+  #done-toggle { flex: 1; font-family: var(--font-sans); font-size: 0.85rem; padding: 11px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; white-space: nowrap; }
+  #done-toggle.done { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #cutoff-note { display: block; font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); text-align: center; margin-top: 8px; }
+
+  #submit-block { margin: 0; flex: 1; }
+  #submit-btn {
+    width: 100%; font-family: var(--font-sans); font-weight: 600; font-size: 0.85rem;
+    padding: 11px 10px; border-radius: 8px; border: none; background: var(--accent); color: #fff; cursor: pointer;
+  }
+  #submit-btn:disabled { opacity: 0.5; cursor: default; }
+  #submit-note { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); text-align: center; margin-top: 6px; }
+
+  @media (max-width: 480px) {
+    #submit-btn { font-size: 0.72rem; padding: 9px 8px; }
+    #done-toggle { font-size: 0.72rem; padding: 9px 8px; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="login-gate">
+    <div class="login-card">
+      <h1>UIM Logbook</h1>
+      <p>Enter your passcode to view your logbook.</p>
+      <input type="password" id="login-input" placeholder="Passcode" autocomplete="off" inputmode="numeric" />
+      <button class="btn btn-primary" id="login-btn">Log in</button>
+      <div id="login-error"></div>
+    </div>
+  </div>
+
+  <div id="topbar">
+    <div id="brand">UIM Logbook</div>
+    <button id="logout-link" style="display:none;">Log out</button>
+  </div>
+
+  <div class="modal-overlay" id="confirm-overlay">
+    <div class="modal-card">
+      <p>Submit this list? You won't be able to edit these entries after submitting.</p>
+      <div class="actions">
+        <button class="btn btn-ghost" id="confirm-cancel">Cancel</button>
+        <button class="btn btn-primary" id="confirm-ok">Yes, submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="greeting-row">
+    <div id="greeting"></div>
+    <div id="skill-line"></div>
+  </div>
+
+  <div id="project-picker">
+    <label>Project</label>
+    <select id="project-select"></select>
+  </div>
+
+  <div id="view-tabs">
+    <button class="view-tab active" id="tab-log" data-view="log">Log entries</button>
+    <button class="view-tab" id="tab-submissions" data-view="submissions">Past submissions</button>
+  </div>
+
+  <div id="page">
+    <div id="empty-projects" style="display:none;">Nothing assigned to you yet — ask the Barrister to add you to a project.</div>
+
+    <div id="project-view">
+
+      <div id="log-view">
+        <div id="client-tag"></div>
+        <div id="brief-text"></div>
+        <div id="team-line"></div>
+
+        <div class="section-head">Your entries (draft — not yet submitted)</div>
+        <div id="entry-rows"></div>
+        <div id="empty-entries">Nothing logged yet — add your first entry below.</div>
+
+        <button id="add-toggle">+ Add an entry</button>
+        <div id="add-form">
+          <div class="form-row">
+            <div>
+              <label>Day</label>
+              <select id="f-day">
+                <option>Mon</option><option>Tue</option><option>Wed</option>
+                <option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option>
+              </select>
+            </div>
+            <div class="grow">
+              <label>What did you do</label>
+              <input id="f-desc" placeholder="e.g. Shot new menu launch reel" />
+            </div>
+          </div>
+          <div>
+            <label>Note (optional)</label>
+            <input id="f-note" placeholder="e.g. Reshot one clip — audio issue on first take" />
+          </div>
+          <div class="actions">
+            <button class="btn btn-ghost" id="f-cancel">Cancel</button>
+            <button class="btn btn-primary" id="f-save">Save entry</button>
+          </div>
+        </div>
+
+        <div id="actions-row">
+          <button id="done-toggle"></button>
+          <div id="submit-block">
+            <button id="submit-btn"></button>
+          </div>
+        </div>
+        <span id="cutoff-note">Editable through Sunday night</span>
+        <div id="submit-note">Sends your draft above as a dated report. It'll then show under "Past submissions".</div>
+      </div>
+
+      <div id="submissions-view" style="display:none;">
+        <div class="section-head">Statement of your submissions</div>
+        <div id="submissions-list"></div>
+        <div id="empty-submissions" style="display:none;" class="row-note">Nothing submitted yet for this project.</div>
+      </div>
+
+    </div>
+  </div>
+
+<script src="js/store.js"></script>
+<script>
+  let currentStaff = null;
+  let currentProject = null;
+  let currentView = 'log'; // 'log' | 'submissions'
+  let _projects = [];
+
+  // ---- Login gate ----
+  const gate = document.getElementById('login-gate');
+  const loginInput = document.getElementById('login-input');
+  const loginBtn = document.getElementById('login-btn');
+  const loginError = document.getElementById('login-error');
+  const logoutBtn = document.getElementById('logout-link');
+
+  function tryLogin(code) {
+    const match = Store.STAFF.find(s => s.passcode === code);
+    if (!match) {
+      loginError.textContent = 'Passcode not recognized. Try again.';
+      return;
+    }
+    currentStaff = match.name;
+    sessionStorage.setItem('uim_staff_session', match.passcode);
+    gate.style.display = 'none';
+    logoutBtn.style.display = 'inline';
+    loadStaff();
+  }
+
+  loginBtn.onclick = () => tryLogin(loginInput.value.trim());
+  loginInput.addEventListener('keydown', e => { if (e.key === 'Enter') loginBtn.click(); });
+
+  logoutBtn.onclick = () => {
+    sessionStorage.removeItem('uim_staff_session');
+    currentStaff = null;
+    currentProject = null;
+    loginInput.value = '';
+    loginError.textContent = '';
+    gate.style.display = 'flex';
+    logoutBtn.style.display = 'none';
+  };
+
+  // Auto-login if this browser tab already has a session (cleared on browser close)
+  const savedCode = sessionStorage.getItem('uim_staff_session');
+  if (savedCode) tryLogin(savedCode);
+
+  // ---- View tabs ----
+  document.querySelectorAll('.view-tab').forEach(btn => {
+    btn.onclick = () => {
+      currentView = btn.dataset.view;
+      document.querySelectorAll('.view-tab').forEach(b => b.classList.toggle('active', b === btn));
+      document.getElementById('log-view').style.display = currentView === 'log' ? 'block' : 'none';
+      document.getElementById('submissions-view').style.display = currentView === 'submissions' ? 'block' : 'none';
+      if (currentView === 'submissions') renderSubmissions();
+    };
+  });
+
+  const projectSelect = document.getElementById('project-select');
+  projectSelect.onchange = () => {
+    const id = Number(projectSelect.value);
+    currentProject = _projects.find(p => p.id === id) || null;
+    renderProject();
+  };
+
+  async function loadStaff() {
+    const skill = Store.STAFF.find(s => s.name === currentStaff).skill;
+    document.getElementById('greeting').textContent = `Hi, ${currentStaff.split(' ')[0]}`;
+    document.getElementById('skill-line').textContent = skill;
+
+    _projects = await Store.getProjectsForStaff(currentStaff);
+
+    document.getElementById('empty-projects').style.display = _projects.length ? 'none' : 'block';
+    document.getElementById('project-picker').style.display = _projects.length ? 'block' : 'none';
+    document.getElementById('view-tabs').style.display = _projects.length ? 'flex' : 'none';
+    document.getElementById('project-view').style.display = _projects.length ? 'block' : 'none';
+
+    if (!_projects.length) { currentProject = null; return; }
+    if (!currentProject || !_projects.find(p => p.id === currentProject.id)) currentProject = _projects[0];
+
+    projectSelect.innerHTML = _projects.map(p =>
+      `<option value="${p.id}" ${p.id === currentProject.id ? 'selected' : ''}>${p.client}</option>`
+    ).join('');
+
+    await renderProject();
+  }
+
+  async function renderProject() {
+    const p = currentProject;
+    document.getElementById('client-tag').textContent = p.client.toUpperCase();
+    document.getElementById('brief-text').textContent = `"${p.brief}"`;
+
+    const claims = await Store.getClaimsForProject(p.id);
+    const teamEl = document.getElementById('team-line');
+    teamEl.innerHTML = '';
+    p.team.forEach(name => {
+      const isMe = name === currentStaff;
+      const done = !!claims[name];
+      const chip = document.createElement('span');
+      chip.className = 'chip' + (isMe ? ' me' : '') + (done ? ' done' : '');
+      chip.textContent = `${isMe ? 'You' : name} — ${done ? 'done ✓' : 'in progress'}`;
+      teamEl.appendChild(chip);
+    });
+
+    await renderEntries();
+    if (currentView === 'submissions') await renderSubmissions();
+
+    const doneBtn = document.getElementById('done-toggle');
+    const isDone = !!claims[currentStaff];
+    doneBtn.textContent = isDone ? 'Done \u2713 (undo)' : 'Mark done';
+    doneBtn.className = isDone ? 'done' : '';
+    doneBtn.onclick = async () => {
+      await Store.setClaim(p.id, currentStaff, !isDone);
+      await renderProject();
+    };
+  }
+
+  async function renderEntries() {
+    const entries = await Store.getEntries(currentProject.id, currentStaff, true); // draft only
+    const rowsEl = document.getElementById('entry-rows');
+    rowsEl.innerHTML = '';
+    entries.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <div class="row-day">${item.day}</div>
+        <div class="row-main">
+          <div class="row-desc">${item.desc}</div>
+          <div class="row-note">${item.note || ''}</div>
+        </div>
+      `;
+      rowsEl.appendChild(row);
+    });
+    document.getElementById('empty-entries').style.display = entries.length ? 'none' : 'block';
+
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = !entries.length;
+    submitBtn.textContent = entries.length
+      ? `Submit ${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`
+      : 'Nothing to submit yet';
+  }
+
+  // ---- Confirm-before-submit ----
+  const confirmOverlay = document.getElementById('confirm-overlay');
+  document.getElementById('submit-btn').onclick = () => {
+    confirmOverlay.classList.add('open');
+  };
+  document.getElementById('confirm-cancel').onclick = () => {
+    confirmOverlay.classList.remove('open');
+  };
+  document.getElementById('confirm-ok').onclick = async () => {
+    confirmOverlay.classList.remove('open');
+    const submission = await Store.submitEntries(currentProject.id, currentStaff);
+    if (!submission) return;
+    await renderEntries();
+    document.getElementById('submit-note').textContent = 'Submitted — check "Past submissions" to view it.';
+    setTimeout(() => {
+      document.getElementById('submit-note').textContent =
+        'Sends your draft above as a dated report. It\u2019ll then show under "Past submissions".';
+    }, 3500);
+  };
+
+  async function renderSubmissions() {
+    if (!currentProject) return;
+    const subs = await Store.getSubmissions(currentProject.id, currentStaff);
+    const listEl = document.getElementById('submissions-list');
+    listEl.innerHTML = '';
+    document.getElementById('empty-submissions').style.display = subs.length ? 'none' : 'block';
+
+    subs.forEach(sub => {
+      const dateStr = new Date(sub.submittedAt).toLocaleString(undefined, {
+        month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+      });
+
+      const row = document.createElement('div');
+      row.className = 'sub-row';
+      row.innerHTML = `
+        <span class="sub-date">${dateStr}</span>
+        <span class="sub-count">${sub.rows.length} ${sub.rows.length === 1 ? 'entry' : 'entries'} \u2192</span>
+      `;
+
+      const detail = document.createElement('div');
+      detail.className = 'sub-detail';
+      detail.innerHTML = sub.rows.map(r => `
+        <div class="row">
+          <div class="row-day">${r.day}</div>
+          <div class="row-main">
+            <div class="row-desc">${r.desc}</div>
+            <div class="row-note">${r.note || ''}</div>
+          </div>
+        </div>
+      `).join('');
+
+      row.onclick = () => detail.classList.toggle('open');
+
+      listEl.appendChild(row);
+      listEl.appendChild(detail);
+    });
+  }
+
+  const addToggle = document.getElementById('add-toggle');
+  const addForm = document.getElementById('add-form');
+  addToggle.onclick = () => { addForm.classList.add('open'); addToggle.style.display = 'none'; };
+  document.getElementById('f-cancel').onclick = () => { addForm.classList.remove('open'); addToggle.style.display = 'block'; };
+  document.getElementById('f-save').onclick = async () => {
+    const desc = document.getElementById('f-desc').value.trim();
+    if (!desc) return;
+    await Store.addEntry({
+      projectId: currentProject.id,
+      staff: currentStaff,
+      day: document.getElementById('f-day').value,
+      desc,
+      note: document.getElementById('f-note').value.trim(),
+    });
+    document.getElementById('f-desc').value = '';
+    document.getElementById('f-note').value = '';
+    addForm.classList.remove('open');
+    addToggle.style.display = 'block';
+    await renderEntries();
+  };
+
+  window.addEventListener('focus', () => { if (currentStaff) loadStaff(); });
+</script>
+
+</body>
+</html>
